@@ -1,5 +1,8 @@
 # GoF 디자인 패턴의 분류
 
+매주 1인 1패턴을 조사합니다.   
+`Template.md` 파일에 있는 템플릿을 참고하여 md파일을 작성합니다.
+
 ## 생성(Creational) 패턴
 
 - 추상 팩토리(Abstract Factory)

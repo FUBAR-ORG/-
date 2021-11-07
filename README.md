@@ -23,7 +23,11 @@
 - 간단한 생각이라도 리뷰에 적기.
 - 좋은 점은 가감없이 칭찬하기.
 
-
 ## PR
-    branch 이름/포스팅 제목
-    ex) cheolhyun/싱글톤 패턴
+- 책 내용:   
+    branch 장(Chapter)/절 번호   
+    ex) chapter1/1
+
+- 디자인 패턴:   
+    branch 카테고리/패턴명   
+    ex) creational/singleton
