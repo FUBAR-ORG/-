@@ -1,7 +1,7 @@
 # **디자인 패턴 분류 research 템플릿**
 
 - 경로명: [카테고리 이름]/[패턴 이름].md 로 작성
-    - creational/singleton.md
+    - creational/Singleton.md
 
 # [패턴의 이름]
 
@@ -16,3 +16,7 @@
 ## [패턴 주 사용처]
 
 ## [Example code]
+
+---
+
+## 참고자료
