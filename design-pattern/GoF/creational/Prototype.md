@@ -48,7 +48,7 @@ class Car implements ICar {
   }
 }
 
-const benz = new Benz({series: 'S', color: 'grey', engine: 'gasoline'});
+const benz = new Car({series: 'S', color: 'grey', engine: 'gasoline'});
 
 const myBenz = benz.clone();
 myBenz.setOptions = ['선루프', '크루즈 컨트롤', '난방 시트'];
