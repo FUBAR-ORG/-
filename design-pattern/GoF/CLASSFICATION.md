@@ -35,7 +35,6 @@
 - 템플릿 메서드(Template Method)
 - 비지터(Visitor)
 
-
 ---
 
 ## 참고자료

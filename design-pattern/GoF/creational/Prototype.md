@@ -7,7 +7,7 @@
 - 기본 원형이 되는 인스턴스를 사용해서 생성할 객체의 종류를 명시하고 이렇게 만들어진 객체를 복사해서 새로운 객체를 생성
 
 ## UML
-![img.png](../../../asset/prototype.png)
+![img.png](../../../assets/prototype.png)
 
 - Prototype: 복제하는 인터페이스 정의
 - ConcretePrototype(n): 복제하는 연산 구현

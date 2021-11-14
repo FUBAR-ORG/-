@@ -44,8 +44,8 @@ const gary = new User("Gary", 10);
 ```
 
 1. 매번 파라미터의 순서를 체크해야하기 때문에 실수할 가능성 커짐.
-1. 생성자에서 매개변수의 수가 많아졌을 때, 어떤 매개변수가 어떤 값을 의미하는지 헷갈림.
-1. 초기화하지 않아도 되는 값임에도 생성자에서 처리해줘야 하기 때문에 가독성 하락.
+2. 생성자에서 매개변수의 수가 많아졌을 때, 어떤 매개변수가 어떤 값을 의미하는지 헷갈림.
+3. 초기화하지 않아도 되는 값임에도 생성자에서 처리해줘야 하기 때문에 가독성 하락.
 
 `TypeScript`에서는 `Sequelize`, `TypeORM`과 같은 `Node.js`의 `ORM` 라이브러리에서 모델 생성과 `SQL` 조작 등에서 사용하고 있으며, 가독성이 뛰어난 것을 쉽게 확인할 수 있다.
 
@@ -288,7 +288,8 @@ class HttpRequest {
 
 const httpRequest = HttpRequest.Builder.setProtocol("http")
   .setUrl("www.google.co.kr")
-  .setMethod("GET");
+  .setMethod("GET")
+  .build();
 
 httpRequest.send();
 ```
@@ -341,7 +342,8 @@ class HttpRequest extends Builder {
 
 const httpRequest = new HttpRequest().setProtocol("http")
   .setUrl("www.google.co.kr")
-  .setMethod("GET");
+  .setMethod("GET")
+  .build();
 
 httpRequest.send();
 ```
@@ -350,8 +352,6 @@ httpRequest.send();
 
 ## 참고 자료
 
-[위키 백과](https://ko.wikipedia.org/wiki/%EB%B9%8C%EB%8D%94_%ED%8C%A8%ED%84%B4)
-
-[HERSTORY Blog](https://4z7l.github.io/2021/01/19/design_pattern_builder.html)
-
-[TTUM TISTORY Blog](https://ttum.tistory.com/35)
+- [위키 백과](https://ko.wikipedia.org/wiki/%EB%B9%8C%EB%8D%94_%ED%8C%A8%ED%84%B4)
+- [HERSTORY Blog](https://4z7l.github.io/2021/01/19/design_pattern_builder.html)
+- [TTUM TISTORY Blog](https://ttum.tistory.com/35)
