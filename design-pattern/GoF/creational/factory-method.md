@@ -47,7 +47,7 @@ public:
     virtual Node GetInstance(char Char) = 0;
 }
 
-class NodeMarchine
+class NodeMarchine : public NodeFactory
 {
 public:
     Node GetInstance(char Char)
@@ -163,7 +163,7 @@ int main()
 {
     DocFactory docFactory = new DocMarchine();
 
-    Document wrod = docFactory.GetInstance(DocType::Word);
+    Document word = docFactory.GetInstance(DocType::Word);
     Document pdf = docFactory.GetInstance(DocType::PDF);
     Document excel = docFactory.GetInstance(DocType::Excel);
 
