@@ -34,18 +34,168 @@
 
 # 2.2 하나의 책임만을 지는 클래스 만들기
 
-## 2.2.1 애플리케이션 예시: 자전거와 기어
+하나의 클래스는 최대한 작으면서도 유용한 것만 해야 한다. ( smallest possible useful thing )
 
 ## 2.2.2 단일 채임 원칙은 왜 중요한가
 
+- 쉽게 수정할 수 있는 애플리케이션은 재사용하기 쉬운 클래스로 구성되어 있다. 재사용할 수 있는 클래스랑 쉽게 가져다 쓸 수 있는 코드(pluggable units)다.
+- 한 개 이상의 책임이 있는 클래스는 재사용이 어렵다. 내부 적으로 여러 책임들이 서로 얽혀 있을 가능성이 높기 때문이다.
+- 클래스의 책임이 너무 밀접하게 겹할되어(coupled)되어 있어서 우리가 원하는 행동만 가져올 수 없기 때문에 코드를 복사해서 사용하는 방법이 있다. ( 좋은 방법이 아님 )
+- 클래스를 재사용할 생각이 없어도 수정해야 하며, 본 클래스를 사용하는 모든 클래스에서 문제가 발생할 수 있기 때문이다.
+
 ## 2.2.3 클래스에게 하나의 책임만 있는지 알아보기
 
+- 클래스를 인격이 있는 존재처럼 가정하고 질문을 던져보는 방법이 있다.
+- 클래스의 책임을 한 문장으로 만들어 보는 것이다. ( 클래스는 최대한 작으면서도 유용한 것 )
+- 클래스 안의 모든 것들이 하나의 핵심 목표와 연관되어 있을 때 이 클래스는 강하게 응집되어 있다(high cohesive)고 할 수 있다.
+- 즉, 응집력(cohesion)은 약할수록 좋은 클래스이다.
+- 응집력이 약할수록 단일 책임 원칙을 따른다고 말할 수 있다.
+
 ## 2.2.4 언제 디자인을 결정할지 판단하기
+
+- 클래스에 문제가 있다고 깨닫는 순간은 자주 온다.
+- 우리가 미래에 어떤 기능이 필요할지 이미 알고 있다면 지금 당장 완벽한 디자인을 선택할 수 있다.
+- 준비도 안된 상태에서 서둘러서 디자인을 결정해야 한다고 느끼지 말자.
+  - 위 상황에서  "지금 아무것도 하지 않는다면 나중에 어떤 대가를 치르게될까" 생각해 볼 것
+- 코드를 수정하는 데 드는 비용이 나중에 코드를 수정할 때 필요한 비용과 동일하다면 결정의 순간을 미루는 것이 좋다.
+- 결정을 미룬다면(나중에 수정한다고 결정한다면), 잘못된 코드를 다른 누군가가 재사용하지 않도록 명시적으로 알려주어야 한다
 
 # 2.3 변화를 받아들일 수 있는 코드 작성하기
 
 ## 2.3.1 데이터(data)가 아니라 행동(behavior)에 기반한 코드를 작성하라
 
+- 행동은 메서드 속에 담겨 있고 메시지를 보내는 행위를 통해 실행된다.
+- 하나의 책임만 지는(단일 책임 원칙)만 지는 클래스를 만들면 각각의 작은 행동들은 단 한 곳에만 존재한다. ( Don't Repeat Yourself, DRY 원칙을 잘 따른 클래스)
+
+### 데이터에 접근하는 방법
+#### A. 인스턴스 변수 숨기기
+- 변수를 직접 참조하기보다는 언제나 엑세서 메서드를 통해 변수에 접근하는 것이 좋다.
+```ruby
+class Gear
+    def initialize(chainring, cog)
+        @chainring = chainring
+        @cog = cog
+    end
+
+    def ratio
+        @chainring / @cog.to_f # <--멸망의 길
+    end
+end
+```
+- 데이터를 객체처럼 취급하면 발생하는 두가지 이슈
+```
+1. 가시성(visibility)
+ - 클래스 내 변수를 private / public 으로 만들 것인가
+
+2. 데이터와 객체 사이의 구분이 무의미해진다.
+ - 모든 변수를 래퍼 메서드로 감싸고 변수를 마치 객체처럼 사용하기 때문에
+```
+
+- 개발자도 데이터의 모든 행동을 다 알고 있지 못한 경우가 많다. 따라서, 개발자 또한 변수는 메시지를 통해 접근하자.
+
+#### B. 데이터 구조 숨기기
+- 데이터 구조에 의존하는 방식은 더더욱 좋지 않다
+```ruby
+class ObscuringReferences
+    attr_reader :data
+    def initialize(data)
+        @data = data
+    end
+
+    def diameters
+        # 0 is rim, 1 is tire height
+        data.collect { |cell|
+            cell[0] + (cell[1] * 2)}
+    end
+    # ... other method to access the index of array
+end
+```
+- 위 예에서 diameters 메서드는 cell 배열의 구조를 알고 있음
+- 만약 구조가 바뀐다면, diameters 메서드도 변경이 필요함
+- 이는 좋은 방식이 아님
+- 좋은 구조로 변경한 예시
+```ruby
+class RevealingReferences
+    attr_reader :wheels
+    def initialize(data)
+        @wheels = wheelify(data)
+    end
+
+    def diameters
+        wheels.collect {|wheel|
+            wheel.rim + (wheel.tire *2)}
+    end
+    # ... now everyone can send rim / tire to wheel
+
+    Wheel = struct.new(:rim, :tire)
+    def wheelify(data)
+        data.collect {|cell|
+            Wheel.new(cell[0], cell[1]}
+    end
+end
+```
+
 ## 2.3.2 모든 곳에 단일 책임 원칙을 강제하라
 
-# 2.4 드디어, 진짜 바퀴
+- 단일 책임 원칙에 충실한 클래스를 만들면 디자인에 중요한 영향을 미친다.
+- 클래스가 아닌 다른 부분에도 단일 책임 원칙을 유용하게 적용할 수 있다.
+
+#### A. 메서드에서 추가적인 책임을 뽑아내기
+- 클래스와 같이 메서드 역시 하나의 책임만을 져야 한다.
+```ruby
+def diameters
+    wheels.collect {|wheel|
+        wheel.rim + (wheel.tire * 2)}
+end
+```
+- 위는 '여러 개의 바퀴들을 하나씩 훑는 것 + 바퀴 하나의 지름을 계산하는 것' 을 책임지고 있는 메서드 예시이다.
+- 하나의 책임을 갖도록 수정한 메서드
+```ruby
+# 첫째로 - 배열을 하나씩 훑는다.
+def diameters
+    wheel.collect {|wheel| diameter(wheel)}
+end
+
+# 둘째로 - 바퀴 한 개의 지름을 계산한다.
+def diameter(wheel)
+    wheel.rim + (wheel.tire *2)
+end
+```
+
+- 메서드가 각각 하나의 책임을 질 때 얻을 수 있는 이득
+  - 예전에는 몰랐던 특성이 드러난다
+  - 주석을 넣어야할 필요가 없어진다
+  - 재사용을 유도한다
+  - 다른 클래스로 옮기기 쉽다
+
+#### B. 클래스의 추가적인 책임들을 격리시켜 놓아라
+- 모든 메서드들이 하나의 책임만 직 되면 클래스의 역할의 범위(scope) 역시 분명해진다.
+- 너무 많은 책임을 지고 있는 혼란스런 클래스가 있다면, 이 클래스의 책임을 다른 클래스 속으로 분리해주자.
+```ruby
+class Gear
+    attr_reader :chainring, :cog, :wheel
+    def initialize(chainring, cog, rim, tire)
+        @chainring = chainring
+        @cog = cog
+        @wheel = wheel.new(rim, tire)
+    end
+
+    def ratio
+        chainring / cog.to_f
+    end
+
+    def gear_inches
+        ratio * wheel.diameter
+    end
+
+    Wheel = Struct.new(:rim, :tire) do
+        def diameter
+            rim + (tire *2)
+        end
+    end
+end
+ ```
+- 아직 제거하기 어려운 추가적인 책임을 발견했다면 그 책임을 격리시킬 방법을 고안하고 구현하자.
+
+# 2.5 요약
+- 하나의 책임을 지는 클래스를 만드는 것이 수정하기 쉽고 유지보수하기 쉬운 객체지향 소프트웨어를 만들어가는 길이다.
