@@ -12,7 +12,7 @@
 
 ## UML
 
-![img.png](../../../assets/builder_uml.png)
+![Builder_pattern_UML](../../../assets/builder_uml.png)
 
 ---
 
@@ -34,7 +34,7 @@
 
 ## 빌더 패턴 주 사용처
 
-생성해야 하는 객체가 `Optional`한 속성을 많이 가질 때 유리.
+- 생성해야 하는 객체가 `Optional`한 속성을 많이 가질 때 유리.
 
 ```ts
 class User {
@@ -55,7 +55,7 @@ const gary = new User("Gary", 10);
 2. 생성자에서 매개변수의 수가 많아졌을 때, 어떤 매개변수가 어떤 값을 의미하는지 헷갈림.
 3. 초기화하지 않아도 되는 값임에도 생성자에서 처리해줘야 하기 때문에 가독성 하락.
 
-`TypeScript`에서는 `Sequelize`, `TypeORM`과 같은 `Node.js`의 `ORM` 라이브러리에서 모델 생성과 `SQL` 조작 등에서 사용하고 있으며, 가독성이 뛰어난 것을 쉽게 확인할 수 있다.
+- `TypeScript`에서는 `Sequelize`, `TypeORM`과 같은 `Node.js`의 `ORM` 라이브러리에서 모델 생성과 `SQL` 조작 등에서 사용하고 있으며, 가독성이 뛰어난 것을 쉽게 확인할 수 있다.
 
 ## Example Code
 
