@@ -1,0 +1,1 @@
+[데메테르의 법칙](https://tecoble.techcourse.co.kr/post/2020-06-02-law-of-demeter/)
