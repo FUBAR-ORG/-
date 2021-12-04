@@ -94,6 +94,107 @@
 
 ## Example Code
 
+- 기초 예시
+
+```ts
+interface Subject {
+  doAction(): void;
+}
+
+class Proxy implements Subject {
+  private realSubject: RealSubject;
+  private s: string;
+
+  constructor(s: string) {
+    this.s = s;
+  }
+
+  public doAction(): void {
+    console.log("`doAction` of Proxy(", this.s, ")");
+    if (this.realSubject === null || this.realSubject === undefined) {
+      console.log("creating a new RealSubject.");
+      this.realSubject = new RealSubject(this.s);
+    }
+    this.realSubject.doAction();
+  }
+}
+
+class RealSubject implements Subject {
+  private s: string;
+
+  constructor(s: string) {
+    this.s = s;
+  }
+  public doAction(): void {
+    console.log("`doAction` of RealSubject", this.s, "is being called!");
+  }
+}
+
+const proxy1: Proxy = new Proxy("proxy1");
+const proxy2: Proxy = new Proxy("proxy2");
+
+proxy1.doAction();
+proxy1.doAction();
+proxy2.doAction();
+proxy2.doAction();
+proxy1.doAction();
+```
+
+- 추가 예시
+
+```ts
+interface User {
+  id: string;
+  name: string;
+}
+
+interface UserDirectorySubject {
+  add(user: User): void;
+  remove(id: string): void;
+  readUserInfo(id: string): User;
+}
+
+class UserDirectory implements UserDirectorySubject {
+  private users: User[] = [
+    { id: "101", name: "철현" },
+    { id: "202", name: "호석" },
+    { id: "303", name: "성민" },
+    { id: "404", name: "국인" },
+  ];
+
+  add(user: User): void {
+    this.users = this.users.concat(user);
+  }
+  remove(id: string): void {
+    this.users = this.users.filter((user) => user.id !== id);
+  }
+  readUserInfo(id: string): User {
+    return this.users.find((user) => user.id === id);
+  }
+}
+
+class UserDirectoryProxy implements UserDirectorySubject {
+  private realSubject: UserDirectory;
+  private add_count: number = 0;
+  private delete_count: number = 0;
+  private readCount: Record<string, number> = {};
+
+  add(user: User): void {
+    this.add_count = this.add_count + 1;
+    this.realSubject.add(user);
+  }
+  remove(id: string): void {
+    this.delete_count = this.delete_count + 1;
+    this.realSubject.remove(id);
+  }
+  readUserInfo(id: string): User {
+    this.readCount[id] = this.readCount[id] ?? 0;
+    this.readCount[id]++;
+    return this.realSubject.readUserInfo(id);
+  }
+}
+```
+
 ---
 
 ## 참고 자료
@@ -105,3 +206,4 @@
 - [하나씩 점을 찍어 나가며 Blog](https://dailyheumsi.tistory.com/201)
 - [JavaScript에서 프록시 패턴](https://velog.io/@lesh/Javascript%EC%97%90%EC%84%9C%EC%9D%98-Proxy-Pattern%EA%B3%BC-Proxy%EA%B0%9D%EC%B2%B4-3njz2d5vl1)
 - [Lee's Grow up](https://lee1535.tistory.com/101)
+- [JavaScript Proxy](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Proxy)
