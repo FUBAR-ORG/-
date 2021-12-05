@@ -146,8 +146,8 @@ console.log("power", computer.getPower());
 ## 참고 자료
 
 - [위키 백과](https://ko.wikipedia.org/wiki/%EC%BB%B4%ED%8F%AC%EC%A7%80%ED%8A%B8_%ED%8C%A8%ED%84%B4)
-- [하나씩*점을*찍어\_나가며\_Blog](https://dailyheumsi.tistory.com/193)
-- [gmlwjd9405_log](https://gmlwjd9405.github.io/2018/08/10/composite-pattern.html)
+- [하나씩 점을 찍어 나가며 Blog](https://dailyheumsi.tistory.com/193)
+- [gmlwjd9405 Blog](https://gmlwjd9405.github.io/2018/08/10/composite-pattern.html)
 - [마이구미의 HelloWorld](https://mygumi.tistory.com/343)
 - [Codepen 예시](https://codepen.io/ImagineProgramming/pen/NNgvvp)
 - [TypeScript 예시](https://www.sourcecodeexamples.net/2020/08/typescript-composite-pattern-example.html)
