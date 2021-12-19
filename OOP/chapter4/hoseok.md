@@ -222,4 +222,3 @@ hash.keys.sort.join(', '); // #3
 customer.ride();
 ```
 - ride 메서드는 세부적인 구현을 Trip으로부터 감추고 맥락과 의존성을 모두 줄여주는 형식으로 만들 수 있음
-  
