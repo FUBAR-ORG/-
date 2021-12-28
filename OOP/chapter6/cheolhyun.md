@@ -300,15 +300,15 @@ interface MountainBikeAttr {
   rear_shock?: string;
 }
 
-class Bicycle {
+class Bicycle<T> {
   public readonly size: string;
 
-  constructor({ size }: BicycleAttr) {
-    this.size = size;
+  constructor(args: BicycleAttr & T) {
+    this.size = args.size;
   }
 }
 
-class RoadBike extends Bicycle {
+class RoadBike extends Bicycle<RoadBikeAttr> {
   private readonly tape_color: string;
 
   constructor(args: BicycleAttr & RoadBikeAttr) {
@@ -317,7 +317,7 @@ class RoadBike extends Bicycle {
   }
 }
 
-class MountainBike extends Bicycle {
+class MountainBike extends Bicycle<MountainBikeAttr> {
   private readonly front_shock: string;
   private readonly rear_shock: string;
 
@@ -367,15 +367,15 @@ interface BicycleAttr {
   tire_size?: number;
 }
 
-class Bicycle {
+class Bicycle<T> {
   public readonly size: string;
   public readonly chain: string;
   public readonly tire_size: number;
 
-  constructor({ size, chain, tire_size }: BicycleAttr) {
-    this.size = size;
-    this.chain = chain;
-    this.tire_size = tire_size;
+  constructor(args: BicycleAttr & T) {
+    this.size = args.size;
+    this.chain = args.chain;
+    this.tire_size = args.tire_size;
   }
 }
 ```
@@ -402,15 +402,100 @@ interface MountainBikeAttr {
   rear_shock?: string;
 }
 
-abstract class Bicycle {
+abstract class Bicycle<T> {
   public readonly size: string;
   public readonly chain: string;
   public readonly tire_size: number;
 
-  constructor({ size, chain, tire_size }: BicycleAttr) {
-    this.size = size;
-    this.chain = chain || this.default_chain;
-    this.tire_size = tire_size || this.default_tire_size;
+  constructor(args: BicycleAttr & T) {
+    this.size = args.size;
+    this.chain = args.chain || this.default_chain;
+    this.tire_size = args.tire_size || this.default_tire_size;
+  }
+
+  get default_chain(): string {
+    return "10-speed";
+  }
+
+  get default_tire_size(): number {
+    throw new Error("You have to implements get tire size");
+  }
+}
+
+class RoadBike extends Bicycle<RoadBikeAttr> {
+  private readonly tape_color: string;
+
+  constructor(args: BicycleAttr & RoadBikeAttr) {
+    super(args);
+    this.tape_color = args.tape_color;
+  }
+
+  get default_tire_size(): number {
+    return 23;
+  }
+}
+
+class MountainBike extends Bicycle<MountainBikeAttr> {
+  private readonly front_shock: string;
+  private readonly rear_shock: string;
+
+  constructor(args: BicycleAttr & MountainBikeAttr) {
+    super(args);
+    this.front_shock = args.front_shock;
+    this.rear_shock = args.rear_shock;
+  }
+
+  get default_tire_size(): number {
+    return 2.1;
+  }
+}
+```
+
+### 모든 템플릿 메서드 구현하기
+
+- `Bicycle`의 생성자는 `default_tire_size` 메서드를 전송하지만 스스로는 구현하고 있지 않음.
+- 이 생략이 추후 `RecumbentBike`를 만들고, `RecumbentBike` 메서드에서 `default_tire_size`를 구현하지 않았을 경우, 오류를 발생 시킴.
+- 이 경우 `Bicycle`을 작성한 사람은 실수하지 않겠지만, 처음 작성한 사람은 알아채기 힘듬.
+- `default_tire_size`와 같은 필수 구현 요소를 명시적으로 구현해야 한다고 말해주는 것은 그 자체로 훌륭한 문서.
+
+> 템플릿 메서드 패턴을 사용할 때는 언제나 호출되는 메서드를 작성하고 유용한 에러 메세지를 제공해야 함.
+
+---
+
+## 상위 클래스와 하위 클래스 사이의 커플링 관리하기
+
+- 상위 클래스의 `spares` 메서드는 여러 가지 방법으로 구현할 수 있음.
+- 각 방법은 상위 클래스와 하위 클래스 사이의 결합이 모두 다름.
+
+### 커플링 이해하기
+
+- 간단하지만 클래스 사이의 강력한 결합을 만드는 구현 방식
+
+```ts
+interface BicycleAttr {
+  size?: string;
+  chain?: string;
+  tire_size?: number;
+}
+
+interface RoadBikeAttr {
+  tape_color?: string;
+}
+
+interface MountainBikeAttr {
+  front_shock?: string;
+  rear_shock?: string;
+}
+
+abstract class Bicycle<T> {
+  public readonly size: string;
+  public readonly chain: string;
+  public readonly tire_size: number;
+
+  constructor(args: BicycleAttr & T) {
+    this.size = args.size;
+    this.chain = args.chain || this.default_chain;
+    this.tire_size = args.tire_size || this.default_tire_size;
   }
 
   get spares(): BicycleAttr {
@@ -429,7 +514,7 @@ abstract class Bicycle {
   }
 }
 
-class RoadBike extends Bicycle {
+class RoadBike extends Bicycle<RoadBikeAttr> {
   private readonly tape_color: string;
 
   constructor(args: BicycleAttr & RoadBikeAttr) {
@@ -449,7 +534,7 @@ class RoadBike extends Bicycle {
   }
 }
 
-class MountainBike extends Bicycle {
+class MountainBike extends Bicycle<MountainBikeAttr> {
   private readonly front_shock: string;
   private readonly rear_shock: string;
 
@@ -472,11 +557,267 @@ class MountainBike extends Bicycle {
 }
 ```
 
-### 모든 템플릿 메서드 구현하기
+- `Bicycle`이 전송하는 모든 템플릿 메서드는 `Bicycle` 내에서 구현.
+- 하위 클래스 모두 `constructor`와 `spares` 메서드에서 `super`를 전송.
+- 알아보기 쉬운 패턴으로 상속 관계는 잘 동작 함.
+- 하위 클래스가 모두 자기 자신에게 아는 것이 있고, 자신의 상위 클래스에 대해 아는 것이 있음.
+  - 자신만의 고유한 예비 부품.
+  - 상위 클래스의 `spares` 메서드가 객체를 반환한다는 점.
+  - `constructor`에 반응한다는 점.
+- 다른 클래스에 대해 알고 있다면 여기서 의존성이 만들어지고, 강하게 결합시킴.
 
-- `Bicycle`의 생성자는 `default_tire_size` 메서드를 전송하지만 스스로는 구현하고 있지 않음.
-- 이 생략이 추후 `RecumbentBike`를 만들고, `RecumbentBike` 메서드에서 `default_tire_size`를 구현하지 않았을 경우, 오류를 발생 시킴.
-- 이 경우 `Bicycle`을 작성한 사람은 실수하지 않겠지만, 처음 작성한 사람은 알아채기 힘듬.
-- `default_tire_size`와 같은 필수 구현 요소를 명시적으로 구현해야 한다고 말해주는 것은 그 자체로 훌륭한 문서.
+> 하위 클래스가 `super`를 전송하면서 만들어짐.
 
-> 템플릿 메서드 패턴을 사용할 때는 언제나 호출되는 메서드를 작성하고 유용한 에러 메세지를 제공해야 함.
+- 하위 클래스가 자신이 무엇을 해야하는지는 알아야 함.
+- 추상화된 상위 클래스와 어떻게 소통해야 하는지도 알아야할 때 문제가 발생.
+- 모든 하위 클래스가 정확히 같은 지점에서 `super`를 전송하는 코드 중복이 발생.
+- 미래의 프로그래머가 새로운 하위 클래스에서 `super`를 전송하는 것을 잊어버리게 될 경우 에러를 발생시킬 수 있음.
+
+### 훅 메세지를 사용해서 하위 클래스의 결합 없애기
+
+- 하위 클래스가 알고리즘을 알고 있고 `super`를 전송하는 대신 훅(`hook`) 메세지를 전송할 수 있음.
+- 훅 메세지는 정해진 메서드 구현을 통해 하위 클래스가 정보를 제공할 수 있도록 만들어주는 메세지.
+
+- `constructor`의 훅 예시
+
+  ```ts
+  interface BicycleAttr {
+    size?: string;
+    chain?: string;
+    tire_size?: number;
+  }
+
+  interface RoadBikeAttr {
+    tape_color?: string;
+  }
+
+  interface MountainBikeAttr {
+    front_shock?: string;
+    rear_shock?: string;
+  }
+
+  abstract class Bicycle<T> {
+    public readonly size: string;
+    public readonly chain: string;
+    public readonly tire_size: number;
+
+    constructor(args: BicycleAttr & T) {
+      this.size = args.size;
+      this.chain = args.chain || this.default_chain;
+      this.tire_size = args.tire_size || this.default_tire_size;
+
+      this.postConstructor(args);
+    }
+
+    abstract postConstructor(args: BicycleAttr & T): void;
+
+    public get spares(): BicycleAttr {
+      return {
+        chain: this.chain,
+        tire_size: this.tire_size,
+      };
+    }
+
+    get default_chain(): string {
+      return "10-speed";
+    }
+
+    get default_tire_size(): number {
+      throw new Error("You have to implements get tire size");
+    }
+  }
+
+  class RoadBike extends Bicycle<RoadBikeAttr> {
+    private tape_color: string = "";
+
+    postConstructor(args: BicycleAttr & RoadBikeAttr): void {
+      this.tape_color = args.tape_color;
+    }
+
+    public get spares(): BicycleAttr & RoadBikeAttr {
+      return {
+        ...super.spares,
+        tape_color: this.tape_color,
+      };
+    }
+
+    get default_tire_size(): number {
+      return 23;
+    }
+  }
+
+  class MountainBike extends Bicycle<MountainBikeAttr> {
+    private front_shock: string = "";
+    private rear_shock: string = "";
+
+    postConstructor(args: BicycleAttr & MountainBikeAttr): void {
+      this.front_shock = args.front_shock;
+      this.rear_shock = args.rear_shock;
+    }
+
+    public get spares(): BicycleAttr & MountainBikeAttr {
+      return {
+        ...super.spares,
+        rear_shock: this.rear_shock,
+      };
+    }
+
+    get default_tire_size(): number {
+      return 2.1;
+    }
+  }
+  ```
+
+  - 이 변화는 하위 클래스의 `constructor`에서 `super`를 제거했을 뿐 아니라 `constructor` 메서드 자체를 제거.
+  - 좀 더 크고 추상적인 알고리즘에 자신만의 특수한 내용을 추가.
+  - 추상화된 상위 클래스 `Bicycle`에 정의되어 있고, `postConstructor`를 전송하는 것은 `Bicycle`의 책임.
+  - 하위 클래스는 초기화가 언제 이루어져야 하는지 결정하지 않으므로, 둘 사이 결합이 줄어듬.
+
+  > 언제 전송할지 상위 클래스가 관리한다는 것은 하위 클래스를 변경하지 않고도 알고리즘을 수정할 수 있다는 뜻.
+
+- `spares` 메서드의 훅 예시
+
+  ```ts
+  interface BicycleAttr {
+    size?: string;
+    chain?: string;
+    tire_size?: number;
+  }
+
+  interface RoadBikeAttr {
+    tape_color?: string;
+  }
+
+  interface MountainBikeAttr {
+    front_shock?: string;
+    rear_shock?: string;
+  }
+
+  abstract class Bicycle<T> {
+    public readonly size: string;
+    public readonly chain: string;
+    public readonly tire_size: number;
+
+    constructor(args: BicycleAttr & T) {
+      this.size = args.size;
+      this.chain = args.chain || this.default_chain;
+      this.tire_size = args.tire_size || this.default_tire_size;
+
+      this.postConstructor(args);
+    }
+
+    abstract postConstructor(args: BicycleAttr & T): void;
+
+    public get spares(): BicycleAttr {
+      return {
+        chain: this.chain,
+        tire_size: this.tire_size,
+        ...this.local_spares,
+      };
+    }
+
+    public get local_spares(): T {
+      throw new Error("You have to implements get local spares");
+    }
+
+    get default_chain(): string {
+      return "10-speed";
+    }
+
+    get default_tire_size(): number {
+      throw new Error("You have to implements get tire size");
+    }
+  }
+
+  class RoadBike extends Bicycle<RoadBikeAttr> {
+    private tape_color: string = "";
+
+    postConstructor(args: BicycleAttr & RoadBikeAttr): void {
+      this.tape_color = args.tape_color;
+    }
+
+    public get local_spares(): RoadBikeAttr {
+      return {
+        tape_color: this.tape_color,
+      };
+    }
+
+    get default_tire_size(): number {
+      return 23;
+    }
+  }
+
+  class MountainBike extends Bicycle<BicycleAttr & MountainBikeAttr> {
+    private front_shock: string = "";
+    private rear_shock: string = "";
+
+    postConstructor(args: BicycleAttr & MountainBikeAttr): void {
+      this.front_shock = args.front_shock;
+      this.rear_shock = args.rear_shock;
+    }
+
+    public get local_spares(): MountainBikeAttr {
+      return {
+        front_shock: this.front_shock,
+        rear_shock: this.rear_shock,
+      };
+    }
+
+    get default_tire_size(): number {
+      return 2.1;
+    }
+  }
+  ```
+
+  - 하위 클래스는 `Bicycle`의 `spares` 메서드를 구현하고 있다는 사실을 알 필요가 없음.
+  - 자신의 `local_spares`가 언젠가 어떤 객체에 의해 호출될 것이라는 점만 알고 있음.
+  - 하위 클래스들은 구체적인 구현만 가지고 있기 때문에 훨씬 읽기 쉬움.
+  - 새로운 하위 클래스는 템플릿 메서드만 구현하고 있으면 됨.
+
+- 새로운 하위 클래스인 `RecumbentBike` 클래스 예시
+
+  ```ts
+  interface RecumbentBikeAttr {
+    flag?: string;
+  }
+
+  class RecumbentBike extends Bicycle<RecumbentBikeAttr> {
+    private flag: string = "";
+
+    postConstructor(args: BicycleAttr & RecumbentBikeAttr): void {
+      this.flag = args.flag;
+    }
+
+    public get local_spares(): RecumbentBikeAttr {
+      return {
+        flag: this.flag,
+      };
+    }
+
+    get default_chain(): string {
+      return "9-speed";
+    }
+
+    get default_tire_size(): number {
+      return 28;
+    }
+  }
+  ```
+
+  - 코드는 뚜력하고 명백하며, 규격화되어 있고 예측 가능함.
+
+> 상속이 제대로 정립되었을 경우 누구나 성공적으로 새로운 하위 클래스를 만들 수 있다고 말해 줌.
+
+---
+
+## 요약
+
+- 상속은 공통된 행동을 많이 공유하고 있지만 특정 관점에서만 다르고, 동시에 서로 연관된 타입들을 다루는 문제를 해결함.
+- 공통된 코드를 고립시키고 공통의 알고리즘을 추상 클래스가 구현할 수 있도록 해줌.
+- 동시에 하위 클래스가 자신만의 특수한 행동을 추가할 수 있는 여지도 남김.
+- 추상화된 상위 클래스를 만드는 가장 좋은 방법은 구체적인 하위 클래스의 코드를 위로 올리는 것.
+- 추상화된 상위 클래스는 템플릿 메서드 패턴을 이용해서 하위 클래스가 자신의 특수한 내용을 추가할 수 있도록 도움.
+- 훅 메서드를 통해 `super`를 전송하지 않고도 특수한 내용을 전달할 수 있도록 해줌.
+- 훅 메서드는 상속 관계의 층위 사이의 결합을 느슨하게 해줌.
+
+> 잘 디자인된 상속 관계는 새로운 하위 클래스를 통해 쉽게 확장 가능.
