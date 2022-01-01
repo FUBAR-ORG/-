@@ -183,38 +183,191 @@ const bike: Bicycle = new Bicycle({
 ### 6.4.1 추상화된 상위클래스 만들기
 - 어떤 객체지향 프로그래밍 언어는 특정 클래스를 명시적으로 추상 클래스로 선언할 수 있도록 해준다 // new 메시지를 전송할 수 없다
 - 추상 클래스는 상속받기 위해서 존재한다. 하위클래스들이 공유하는 공통된 행동들의 저장소이고 상속받은 하위클래스들은 구체적인 형태를 제공할 수 있다.
-- 상속 관계를 만드는 데는 높은 비용이 든다.
-- 상속 관계를 만들지 말지를 선택하는 것은 '세 번째 종류의 자전거가 얼마나 빨리 필요하게 될지', '중복 코드를 관리하는 비용이 얼마인지' 사이에 달려있다.
+- 상속 관계를 만드는 데는 높은 비용이 든다. 상속 관계를 만들지 말지를 선택하는 것은 '세 번째 종류의 자전거가 얼마나 빨리 필요하게 될지', '중복 코드를 관리하는 비용이 얼마인지' 사이에 달려있다.
 - 곧 세번째 종류를 구현해야 할 것 같다면 더 나은 정보를 얻을 때까지 기다리는 것이 낫다. 반면, 중복 코드를 매일 변경해야 한다면 상속 관계를 만드는 것이 보다 나은 선택일 수 있다.
 
 ### 6.4.2 추상적인 행동을 위로 올리기
 - 상속을 구현하는데 따르는 여러 어려움은 구체적인 것과 추상적인 것을 제대로 구분하지 못하는 데서 기인한다.
 - '위로 올리기' 전략은 실패했더라도 수정하기 쉬운 문제를 발생시킨다.
-- 추상 클래스에 구체적인 행동이 남아 있다면 새로운 하위클래스레에 적용될 수 있는 행동이 아이 상속 관계는 믿을 수 있는 것이 아니다.
+- 추상화하지 않고 빼먹은 코드가 있더라도 다른 하위클래스가 행동을 필요로 할 때가 오면 문제가 눈에 띈다.
+- '위로 올리기' 전략이 아닌 '아래로 내리기' 즉, 구체적인 구현을 아래로 내리는 방식으로 변경한다면 구체적인 행동을 상위 클래스에 남겨 놓는 경우가 생길 수 있다. // 구체적인 행동은 새로운 하위클래스에 적용될 수 있는 행동이 아니다.
+- 상속 관계를 진행할 때 유념해야 하는 기본 원칙은 구체적인 것을 내리기보다는 추상적인 것을 끌어올리는 방식을 취하는 것이 좋디.
 
 ### 6.4.3 구체적인 것들 속에서 추상적인 것 분리해내기
+- 하위 클래스들이 같은 메서드를 각각 구현하고 있다면 추상화를 놓친 것이다.
+- 구체적인 것과 추상적인 것을 분리해 행동의 특정 부분만을 공유해야한다.
+- 각각의 클래스가 공유해야하는 부분을 위로 올리는 것에 집중해 추상화하자.
 
 ### 6.4.4 템플릿 메서드 패턴 사용하기
-- 궁극적인 목표는 하위클래스가 이 메서드를 재정의하는 것을 통해 하위클래스만의 특수한 행동을 추가할 수 있도록 하기 위함이다
+- 궁극적인 목표는 하위클래스가 메서드를 재정의하는 것을 통해 하위클래스만의 특수한 행동을 추가할 수 있도록 하기 위함
 - 기본 구조를 상위클래스가 정의하고 상위클래스에서 메시지를 전송하여 하위클래스의 특수한 값을 덮는 기술을 템플릿 메서드(template method) 패턴이라고 부른다
 
 ### 6.4.5 모든 템플릿 메서드 구현하기
-- 템플릿 메서드 패턴을 사용할 때는 언제나 호출되는 메서드를 작성하고 유용한 에러 메시지를 제공해야 한다.
+```ts
+interface BicycleAttr {
+  size?: string;
+  chain?: string;
+  tire_size?: number;
+}
+
+abstract class Bicycle<T extends BicycleAttr> {
+  public readonly size: string;
+  public readonly chain: string;
+  public readonly tire_size: number;
+
+  constructor(args: BicycleAttr) {
+    this.size = args.size;
+    this.chain = args.chain || this.default_chain;
+    this.tire_size = args.tire_size || this.default_tire_size;
+  }
+
+  get default_chain(): string {
+    return "10-speed";
+  }
+
+  get default_tire_size(): number {
+    throw new Error("You have to implements get tire size");
+  }
+}
+
+
+interface RoadBikeAttr extends BicycleAttr{
+  tape_color?: string;
+}
+
+class RoadBike extends Bicycle<RoadBikeAttr> {
+  private readonly tape_color: string;
+
+  constructor(args: RoadBikeAttr) {
+    super(args);
+    this.tape_color = args.tape_color;
+  }
+
+  get default_tire_size(): number {
+    return 23;
+  }
+}
+
+interface MountainBikeAttr extends BicycleAttr{
+  front_shock?: string;
+  rear_shock?: string;
+}
+
+class MountainBike extends Bicycle<MountainBikeAttr> {
+  private readonly front_shock: string;
+  private readonly rear_shock: string;
+
+  constructor(args:  MountainBikeAttr) {
+    super(args);
+    this.front_shock = args.front_shock;
+    this.rear_shock = args.rear_shock;
+  }
+
+  get default_tire_size(): number {
+    return 2.1;
+  }
+}
+```
+
+- 템플릿 메서드 패턴을 사용할 때는 언제나 호출되는 메서드를 직접 구현해 놓고 유용한 에러 메시지를 제공해야 한다.
+- 하위 클래스가 메시지를 구현해야 한다고 명시적으로 말해주는 것은 그 자체로 훌륭한 문서가 된다.
 
 ## 6.5 상위클래스와 하위 클래스 사이의 커플링 관리하기
 
-### 6.5.2 커플링 이해하기
-- 다른 클래스에 대해 알고 있다면 여기서 의존성이 만들어진다. 하위클래스가 super를 전송하면서 의존성이 만들어진다.
-- 하위 클래스에서 super를 전송하지 않았을 경우에 치명적인 문제가 발생한다.
+### 6.5.1 커플링 이해하기
+```ts
+abstract class Bicycle<T extends BicycleAttr> {
+  // ...
+  get spares(): T {
+    return {
+      chain: this.chain,
+      tire_size: this.tire_size
+    }
+  }
+}
+
+class RoadBike extends Bicycle<RoadBikeAttr> {
+  // ...
+  get spares(): RoadBikeAttr {
+    return {
+      ...super.spares,
+      tape_color: this.tape_color
+    }
+  }
+}
+
+class MountainBike extends Bicycle<MountainBikeAttr> {
+  // ...
+  get spares(): MountainBikeAttr {
+    return {
+      ...super.spares,
+      rear_shock: this.rear_shock,
+    }
+  }
+}
+```
+- Bicycle이 전송하는 모든 템플릿 메서드는 Bicycle 내에서 구현되어 있고 상속받은 클래스는 모두 super를 전송한다.
+- 이 클래스에서 상속 관꼐는 잘 작동한다. 하지만 이들 모두 자기 자신에 대해 아는 것이 있고, 상위클래스에 대해 아는 것도 있다.
+- 다른 클래스에 대해 알고 있다면 여기서 의존성이 만들어진다. 위 예시에서 의존성은 하위클래스가 super를 전송하면서 만들어진다.
 - 하위클래스는 상위클래스와 어떻게 소통해야 하는지 알고 있어야한다. 하지만 상위클래스와 어떻게 소통해야 하는지도 알아야할 때, 문제가 발생한다.
 - 하위클래스가 super를 전송한다는 것은 스스로 알고리즘에 대해 알고 있다고 말하는 것이며, 이 지식에 의존하고 있는 것이다.
 
 ### 6.5.2 훅 메시지를 사용해서 하위클래스의 결합 없애기
+```ts
+abstract class Bicycle<T> {
+  constructor(args) {
+    // ...
+    this.postConstructor(args);
+  }
+
+  abstract postConstructor(args: T): void;
+
+  public get spares(): BicycleAttr {
+    return {
+      chain: this.chain,
+      tire_size: this.tire_size,
+      ...this.local_spares,
+    };
+  }
+
+  public get local_spares(): T {
+    throw new Error("You have to implements get local spares");
+  }
+}
+
+class RoadBike extends Bicycle<RoadBikeAttr> {
+  // ...
+  postConstructor(args: RoadBikeAttr): void {
+    this.tape_color = args.tape_color;
+  }
+
+  public get local_spares(): RoadBikeAttr {
+    return {
+      tape_color: this.tape_color,
+    };
+  }
+}
+
+class MountainBike extends Bicycle<MountainBikeAttr> {
+  // ...
+  postConstructor(args: MountainBikeAttr): void {
+    this.front_shock = args.front_shock;
+    this.rear_shock = args.rear_shock;
+  }
+
+  public get local_spares(): MountainBikeAttr {
+    return {
+      front_shock: this.front_shock,
+      rear_shock: this.rear_shock,
+    };
+  }
+}
+```
 - 하위클래스가 알고리즘을 알고 있고 super를 전송하는 대신 훅(hook) 메시지를 전송할 수 있다.
 - 훅 메시지는 정해진 메서드 구현을 통해 하위클래스가 정보를 제공할 수 있도록 만들어주는 메시지이다. 이 방법을 사용하면 하위클래스는 알고리즘에 대해 몰라도 되며, 상위클래스가 모든 권한을 가질 수 있게 된다.
 
 ## 6.6 요약
-- 공통된 코드를 고립시키고 공통의 알고리즘을 추상 클래스가 구현할 수 있도록 해준다. 동시에 하위 클래스가 특수한 생동을 추가할 수 있는 여지도 남겨 놓는다
+- 공통된 코드를 고립시키고 공통의 알고리즘을 추상 클래스가 구현할 수 있도록 해준다. 동시에 하위 클래스가 특수한 행동을 추가할 수 있는 여지도 남겨 놓는다
 - 추상화된 상위클래스를 만드는 가장 좋은 방법은 구체적인 하위클래스의 코드를 위로 올리는 것이다.
 - 추상화된 상위클래스는 템플릿 메서드 패턴을 이용해서 하위클래스가 자신의 특수한 내용을 추가할 수 있도록 돕는다.
 - 훅 메서드를 이용해 하위클래스가 추상화 알고리즘을 알지 못해도 자신의 특수한 내용을 추가할 수 있다. 하위클래스가 super를 전송하지 않아도 괜찮기 때문에 결합이 느슨해진다.
