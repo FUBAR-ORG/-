@@ -136,5 +136,7 @@ hsyu->SendMessage("hello everyone!");
 ## 참고자료
 ---
 [boycoding](https://boycoding.tistory.com/120)
+
 [medium](https://medium.com/@carlos.ariel.mamani/the-god-object-or-god-class-anti-pattern-bfb8c15eb513)
+
 [a-researcher](https://a-researcher.tistory.com/29)
