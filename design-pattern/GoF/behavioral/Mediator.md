@@ -8,10 +8,10 @@
 ---
 ![img.png](../../../assets/mediator_uml.PNG)
 
-- Mediator : 
-- ConcreteMediator : 
-- Colleague : 
-- ConcreteColleague : 
+- Mediator : 여러 Component 중재해주는 인터페이스를 가지고 있는 추상 클래스 객체
+- ConcreteMediator : ConcreteColleague 객체들을 가지고 있으면서 중재해주는 역할을 하는 객체
+- Colleague : Mediator 객체에 의해서 관리 및 중재 받을 추상 클래스 객체
+- ConcreteColleague : Mediator 객체에 의해서 관리 및 중재를 받을 기본 클래스 객체들
 
 ## 미디에이터 장/단점
 ### 장점
