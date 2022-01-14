@@ -141,15 +141,152 @@ bike.schedulable(starting, ending);
 
 ### 추상화하기
 
+- `JavaScript` 모듈 생성 코드 예제 1
+
+  ```js
+  function moduleName() {
+    this.method = this.method ?? function () {};
+  }
+
+  class ClassName {
+    constructor() {
+      moduleName.call(Foo.prototype);
+    }
+  }
+  ```
+
+- `JavaScript` 모듈 생성 코드 예제 2
+
+  ```js
+  function includeModule(obj, mod) {
+    for (const key in mod) {
+      if (obj.prototype[key] === undefined) {
+        obj.prototype[key] = mod[key];
+      }
+    }
+  }
+
+  const moduleName = {
+    method() {},
+  };
+
+  class ClassName {
+    constructor() {
+      iuncludeModule(ClassName, moduleName);
+    }
+  }
+  ```
+
+- `Bicycle` 만 `schedulable`을 갖고 있으면 안되고, `Mechanic`, `Vehicle`도 같은 역할을 수행하며 같은 행동을 갖고 있어야 함.
+
+```js
+function Schedulable() {
+  // tihs.s; // attr_writer
+  this.schedule = function () {
+    return this.s ?? new Schedule();
+  };
+
+  this.schedulable = function (start_date, end_date) {
+    this.scheduled(stare_date - this.lead_days, end_date);
+  }
+  this.scheduled(start_date, end_date) {
+    this.schedule.scheduled(this start_date, end_date);
+  }
+
+  this.lead_days = this.lead_days ?? 0;
+}
+
+class Bicycle {
+  constructor() {
+    Schedulable.call(Bicycle.prototype);
+  }
+
+  get lead_days() {
+    return 1;
+  }
+}
+
+class Vehicle {
+  constructor() {
+    Schedulable.call(Vehicle.prototype);
+  }
+
+  get lead_days() {
+    return 3;
+  }
+}
+
+class Mechanic {
+  constructor() {
+    Schedulable.call(Mechanic.prototype);
+  }
+
+  get lead_days() {
+    return 4;
+  }
+}
+
+const starting = new Date('2015/09/04');
+const ending = new Date('2015/09/10');
+
+const bike = new Bicycle();
+bike.schedulable(starting, ending);
+
+const vehicle = new Vehicle();
+vehicle.schedulabe(starting, ending);
+
+const mechanic = new Mechanic();
+mechanic.schedulabe(starting, ending);
+```
+
+- 새로운 `Schedulable` 모듈은 `Bicycle` 클래스에서 공통 행동을 뽑아내 추상화시킨 것.
+- 시작 객체가 `Schedule`에 의존하고 있었음.
+
+  - 이는 애플리케이션의 여러 곳에서 `Schedule`에 대한 지식이 흩뿌려짐.
+
+  > `Schedule`에 대한 의존성이 `Schedulable`로 옮겨감.
+
+- 기존 `lead_days`는 `Bicycle`에만 적용되는 숫자.
+  - 모듈은 기본 값 `0`을 반환하고, 템플릿 메서드 패턴을 따르는 훅 메서드로 정의, 이 훅 메서드를 재정의하여 자신만의 특수한 행동 추가.
+
+> `Schedulable` 속에 있는 코드는 추상화되었고, 템플릿 메서드 패턴을 이용해서 객체들이 자신만의 알고리즘에 자신만의 특수한 내용을 추가할 수 있도록 해줌.  
+> `schedulable` 메세지는 자동으로 `Schedulable` 모듈로 전달.  
+> 메서드 탐색(`method lookup)`이 상속과 모듈 동일한 방식으로 진행되기 때문에 코딩 방식 역시 동일.  
+> 상속인 것과 상속인 것처럼 행동하는 것의 차이는 분명 중요.  
+> 이 기술이 비슷한 이유는 둘 모두 자동화된 메세지 전달(`automatic message delegation`)에 기반하고 있기 때문.
+
 ### 메서드를 찾아 올라가기
 
 #### 아주 단순한 설명
 
+- 객체가 메세지를 수신하면 객체지향 언어는 먼저 이 클래스에서 메서드 구현을 찾아봄.
+- 이 클래스에서 메세지를 구현하고 있지 않다면 상위 클래스를 연쇄를 타고 찾아봄.
+- 이는 최상위 클래스에 도달할 때까지 진행.
+
 #### 조금 더 정확한 설명
+
+- `Bicycle`이 `Schedulable` 모듈을 인클루드하면 이 모듈에서 정의된 모든 메서드들이 `Bicycle`이 반응할 수 있는 메세지 모음에 추가.
+- 모듈의 메서드들은 메서드 탐색 경로에서 `Bicycle`이 정의한 메서드들 바로 위에 자리를 잡음.
+- 상위 클래스가 바뀌지 않았지만, 탐색의 관점에서는 바뀐 것처럼 보일 수 있음.
+- `Schedulable` 모듈이 이미 정의하고 있는 메서드를 `Bicycle`이 구현한다면, `Bicycle`의 구현이 `Schedulable`의 것을 재정의(`override`)하게 됨.
+- 모듈은 상위 클래스와 하위 클래스 중간에 위치하게 됨.
 
 #### 거의 완벽한 설명
 
+- 매우 긴 상위 클래스의 연쇄를 가지고 있고, 상위 클래스가 여러 개의 모듈을 인클루드하고 있는 경우, 모듈들은 인클루드된 순서와는 반대로 메서드 탐색 경로에 추가됨.
+- 가장 나중에 인클루드된 모듈이 메서드 탐색 경로에서는 가장 먼저 등장.(`JavaScript`에서 이걸 구현 못함.)
+
+> 모듈을 불러오는 모든 방법들은 메서드 모음을 메서드 탐색 경로의 특정 위치, 애매하지 않고 명확히 정해져 있는 위치에 올려 놓음.
+
+> 사용하기 전 객체의 위계 관계(`Object hierarchy`)를 먼저 살펴볼 필요가 있음.
+
 ## 역할의 행동 상속받기
+
+- 다른 모듈을 인클루드 하는 모듈, 다른 모듈이 정의하고 있는 메서드를 재정의해 버리는 모듈, 매우 길게 늘어선 상속 관계를 만들어 놓고 이 관계 중간 여러 층위의 클래스들에 이 모듈들을 인클루드.
+- 굉장히 강력하지만 굉장히 위험한 구조.
+- 강력한 힘을 사용해 객체들 사이의 간단한 구조를 만들고, 간단한 구조를 통해 애플리케이션의 문제를 우아하게 해결할 수 있음.
+
+> 제대로 상속받을 수 있는 코드를 작성하는 것이 키 포인트.
 
 ---
 
