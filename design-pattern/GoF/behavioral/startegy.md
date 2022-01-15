@@ -136,5 +136,3 @@ context.myStrategy->executeBehavior();
 [Crocus Blog](https://www.crocus.co.kr/1526)
 
 [Regactoring-guru](https://refactoring.guru/design-patterns/strategy)
-
-[]()
