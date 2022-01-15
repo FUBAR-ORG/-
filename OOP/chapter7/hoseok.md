@@ -65,26 +65,148 @@ remove(target, starting, ending)
 ---
 - schdulable? 메서드가 클래스를 확인하는 부분을 제거하고, 대신 인자로 넘겨온 target 들에게 lead_says 메시지를 전송하도록 바뀐 모습을 보여줌
 - 시퀀스 확인 필요
-- 
 
 ### 7.1.4 구체적인 코드 작성하기
+---
+- 코드가 무엇을 해야 하는지, 그 코드를 어디에서 구현해야하는지 반드시 결정해야 함
+```ruby
+class Schedule
+  def scheduled? ( schedulable, start_date, end_date )
+    puts "This #{schedulable.class}" + 
+          "is not scheduled\n" +
+          " between #{start_date} and #{end_date}"
+    false
+  end
+end
+
+class Bicycle
+  attr_reader :schedule, :size, :chain, :tire_size
+
+  #schdule 을 주입하여 defuault 제공
+  def initialize ( args={} )
+    @schedule = args[:schedule]||Schedule.new
+    #...
+  end
+
+  #Bicycle의 준비시간을 감안해서, 주어진 기간에
+  #bicycle을 사용할 수 있으면 true를 반환
+  def schedulable?(start_date, end_date)
+    !scheduled?(start_date - lead_days, end_date)
+  end
+
+  #schedule의 답변을 반환
+  def scheduled?(start_date, end_date)
+    schedulw.scheduled?(self, start_date, end_date)
+  end
+
+  #bicycle을 사용하기 전에 필요한 준비시간의 days를 반환
+  def lead_days
+    1
+  end
+  # ...
+end
+```
+- Schedule이 누구인지, Bicycle 안에서 어떤 일을 하는지 드러나지 않음
 
 ### 7.1.5 추상화하기
+---
+- 아래의 새로운 Schedulable 모듈은 위 Bicycle 클래스에서 공통 행동을 뽑아 추상화한 것
+- Schedulable 의 lead_days는 다른 class에서도 사용해야 함 ( 아래 코드에 작성해둠 )
+
+```ruby
+module Schedulable
+  attr_writer :schedule
+
+  def schedule
+    @schedule ||= ::Schedule.new
+  end
+
+  def schedulable?(start_date, end_date)
+    !scheduled?(start_date - lead_days, end_date)
+  end
+
+  def scheduled?(start_date, end_date)
+    schedule.scheduled?(self, start_date, end_date)
+  end
+
+  #when using this module( include ), could be override this method
+  def lead_days
+    0
+  end
+end
+
+class Bicycle
+  include Schedule
+  
+  def lead_days
+    1
+  end
+end
+
+class Vehicle
+  include Schedulable
+
+  def lead_days
+    3
+  end
+end
+
+class Mechanic
+  include Schedulable
+
+  def lead_days
+    4
+  end
+end
+```
 
 ### 7.1.6 메서드를 찾아 올라가기
+---
+#### 아주 단순한 설명
+- 메세지를 수신한 클래스부터 최상위 클래스까지 구현되고 있는 클래스를 찾아가는 것
+
+#### 조금 더 정확한 설명
+- 클래스뿐만 아니라 include 된 모듈까지 포함하여 구현되고 있는 클래스 혹은 모듈을 찾아가는 것
 
 ### 7.1.7 역할의 행동 상속받기
+---
+  - 다른 모듈을 포함( include )하는 모듈 작성 가능
+  - 다른 코듈이 정의하고 있는 메서드를 재정의해 버리는 모듈 작성 가능
+  - 길게 늘어선 상속 관계에서 중간 여러 층위의 클래스들에 이 모듈을 인클루드 가능
+- 위 기술은 매우 강력함
+- 때문에 위험함
 
 ## 7.2 상속받을 수 있는 코드 작성하기
+---
 
 ### 7.2.1 안티패턴 알아채기
+---
+- 상속을 적용하면 좋을 것 같은 안티패턴
+  - type이나 category 같은 이름을 가진 변수가 있고 이 변수를 가지고 self에 어떤 메시지를 전송할지 결정하는 경우
+  - 객체의 클래스를 확인하고 어떤 메시지를 전송할지 판단하고 있다면 오리타입을 놓치고 있음
 
 ### 7.2.2 추상화된 코드를 모두 사용하기
+---
+- 추상화된 클래스를 상속받은 모든 하위클래스에게 적용되어야 함
+- 즉, 몇몇 하위클래스에게만 적용되는 코드가 상위클래스에 포함되어 있으면 안됨
+- 공통으로 사용할만한 추상회된 코드가 없다면 주어진 디자인 이슈의 해결책은 상속이 아님
 
 ### 7.2.3 약속을 존중하라
+---
+- 하위클래스는 자신의 상위클래스를 대체할 수 있는 형태가 되어야함
+- 상위클래스가 입력받는 인자와 반환되는 값을 제한하고 있어도 하위클래스는 약속을 깨지 않고도 어느 정도의 자유를 누릴 수 있음
 
 ### 7.2.4 템플릿 메서드 패턴 사용하기
+---
+- 템플릿 메서드 패터은 상속받을 수 있는 코드를 작성하기 위한 가장 핵심적인 기술임
+- 템플릿 메서드는 알고리즘의 변경되는 지점들을 표현하고, 이 템플릿 메서드를 만드는 것을 통해 우리는 어떤 내용이 변하는 것이며 어떤 것이 변하지 않는 내용인지 명시적으로 선택하게 됨
 
 ### 7.2.5 한발 앞서 클래스 사이의 결합 깨뜨리기
+---
+- 상속받은 클래스가  super를 전송해야 하는 코드를 작성하지 말 것
+- 훅 메서드는 super를 전송해야 하는 문제를 해결해줌
 
 ### 7.2.6 상속 관계 ( 상속구조 ) 를 낮게 만들기
+---
+- 훅 메서드의 한계는 상속 관계의 높이를 낮게 만들어야 하는 많은 이유 중 하나일 뿐임
+- 높이가 낮고 좁은 구조는 이해하기 쉬운 구조이며 높이가 높고 넓을 수록 이해하기 어렵고 유지비용이 비쌈
