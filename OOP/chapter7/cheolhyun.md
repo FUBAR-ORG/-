@@ -116,11 +116,11 @@ class Bicycle {
   }
 
   schedulable(start_date, end_date) {
-    this.scheduled(stare_date - this.lead_days, end_date);
+    this.scheduled(stare_date + this.lead_days, end_date);
   }
 
   scheduled(start_date, end_date) {
-    this.schedule.scheduled(this start_date, end_date);
+    this.schedule.scheduled(start_date, end_date);
   }
 
   get lead_days() {
@@ -150,7 +150,7 @@ bike.schedulable(starting, ending);
 
   class ClassName {
     constructor() {
-      moduleName.call(Foo.prototype);
+      moduleName.call(ClassName.prototype);
     }
   }
   ```
@@ -190,7 +190,7 @@ function Schedulable() {
     this.scheduled(stare_date - this.lead_days, end_date);
   }
   this.scheduled(start_date, end_date) {
-    this.schedule.scheduled(this start_date, end_date);
+    this.schedule.scheduled(start_date, end_date);
   }
 
   this.lead_days = this.lead_days ?? 0;
@@ -233,10 +233,10 @@ const bike = new Bicycle();
 bike.schedulable(starting, ending);
 
 const vehicle = new Vehicle();
-vehicle.schedulabe(starting, ending);
+vehicle.schedulable(starting, ending);
 
 const mechanic = new Mechanic();
-mechanic.schedulabe(starting, ending);
+mechanic.schedulable(starting, ending);
 ```
 
 - 새로운 `Schedulable` 모듈은 `Bicycle` 클래스에서 공통 행동을 뽑아내 추상화시킨 것.
