@@ -35,7 +35,7 @@ class Strategy;
 class Context
 {
 public:
-    TestBed()
+    Context()
         :myStrategy(nullptr);
     {
     }
