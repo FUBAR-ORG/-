@@ -1,4 +1,4 @@
-# elegant-OOP-handling
+# 루비로 배우는 객체지향 디자인
 
 ## 목표
 
